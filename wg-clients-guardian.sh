@@ -5,8 +5,17 @@
 # This script is written by Alfio Salanitri <www.alfiosalanitri.it> and are licensed under MIT License.
 # Credits: This script is inspired by https://github.com/pivpn/pivpn/blob/master/scripts/wireguard/clientSTAT.sh
 
-# check if wireguard exists
-if ! command -v wg &> /dev/null; then
+# auto-detect if wireguard is inside a container
+if podman exec wireguard which wg >/dev/null 2>&1; then
+    WG_CMD="podman exec wireguard wg"
+elif docker exec wireguard which wg >/dev/null 2>&1; then
+    WG_CMD="docker exec wireguard wg"
+else
+    WG_CMD="wg"
+fi
+
+# check if wireguard exists and get the interface name
+if ! WG_INTERFACE=$($WG_CMD show interfaces 2> /dev/null); then
 	printf "Sorry, but wireguard is required. Install it and try again.\n"
 	exit 1;
 fi
@@ -29,7 +38,7 @@ readonly NOW=$(date +%s)
 # after X minutes the clients will be considered disconnected
 readonly TIMEOUT=$(awk -F'=' '/^timeout=/ { print $2}' $1)
 
-readonly WIREGUARD_CLIENTS=$(wg show wg0 dump | tail -n +2) # remove first line from list
+readonly WIREGUARD_CLIENTS=$($WG_CMD show $WG_INTERFACE dump | tail -n +2) # remove first line from list
 if [ "" == "$WIREGUARD_CLIENTS" ]; then
 	printf "No wireguard clients.\n"
 	exit 1
@@ -92,7 +101,7 @@ fetch_wgdashboard_api() {
 	fi
 
 	while [ $retry -lt $WGDASHBOARD_API_RETRY_COUNT ]; do
-		response=$(curl -s -H "wg-dashboard-apikey: $WGDASHBOARD_API_KEY" "$WGDASHBOARD_API_URL/api/getWireguardConfigurationInfo?configurationName=wg0" 2>/dev/null)
+		response=$(curl -s -H "wg-dashboard-apikey: $WGDASHBOARD_API_KEY" "$WGDASHBOARD_API_URL/api/getWireguardConfigurationInfo?configurationName=$WG_INTERFACE" 2>/dev/null)
 
 		if [ -n "$response" ]; then
 			# Extract only id and name from configurationPeers (one JSON object per line, compact format)
