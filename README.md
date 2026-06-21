@@ -54,7 +54,7 @@ wget https://raw.githubusercontent.com/alfiosalanitri/wireguard-client-connectio
    - Add the following line to execute the script every minute:
 
      ```bash
-     * * * * * cd /path/to/wireguard-client-connection-notification && /path/to/wireguard-client-connection-notification/wg-clients-guardian.sh /path/to/wireguard-client-connection-notification/.config > /dev/null 2>&1
+     * * * * * cd /path/to/wireguard-client-connection-notification && ./wg-clients-guardian.sh ./.config > /dev/null 2>&1
      ```
 
 ### 4. Start Receiving Notifications
