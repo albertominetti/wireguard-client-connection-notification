@@ -4,6 +4,7 @@
 #
 # This script is written by Alfio Salanitri <www.alfiosalanitri.it> and are licensed under MIT License.
 # Credits: This script is inspired by https://github.com/pivpn/pivpn/blob/master/scripts/wireguard/clientSTAT.sh
+set -e
 
 # check if wireguard exists
 if ! command -v wg &> /dev/null; then
@@ -24,6 +25,7 @@ fi
 # config constants
 readonly CURRENT_PATH=$(pwd)
 readonly CLIENTS_DIRECTORY="$CURRENT_PATH/clients"
+mkdir -p $CLIENTS_DIRECTORY
 readonly NOW=$(date +%s)
 
 # after X minutes the clients will be considered disconnected
